@@ -1,22 +1,18 @@
 import { ethers } from "hardhat";
 
 async function main() {
-  const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-  const unlockTime = currentTimestampInSeconds + 60;
+  const greeterFactory = await ethers.deployContract("GreeterFactory");
 
-  const lockedAmount = ethers.parseEther("0.001");
+  await greeterFactory.waitForDeployment();
 
-  const lock = await ethers.deployContract("Lock", [unlockTime], {
-    value: lockedAmount,
-  });
+  console.log(`GreeterFactory deployed to ${greeterFactory.target}`);
 
-  await lock.waitForDeployment();
+  // Deploy a Greeter instance through the factory
+  const tx = await greeterFactory.deployGreeter("Hello, Web3bridgers!");
+  await tx.wait();
 
-  console.log(
-    `Lock with ${ethers.formatEther(
-      lockedAmount
-    )}ETH and unlock timestamp ${unlockTime} deployed to ${lock.target}`
-  );
+  const deployedGreeters = await greeterFactory.getDeployedGreetings();
+  console.log("Deployed Greeter address:", deployedGreeters);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
